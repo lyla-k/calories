@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>칼로리 계산기</title>
+</head>
+<body>
+  <h2>내 하루 칼로리와 영양소 계산기</h2>
+  <label>키 (cm):</label><input id="height" type="number"><br>
+  <label>몸무게 (kg):</label><input id="weight" type="number"><br>
+  <button onclick="calculate()">계산하기</button>
+  <p id="result"></p>
+
+  <script>
+    function calculate() {
+      const height = parseFloat(document.getElementById('height').value);
+      const weight = parseFloat(document.getElementById('weight').value);
+      const age = 25;
+      const bmr = 655 + (9.6 * weight) + (1.8 * height) - (4.7 * age);
+      const calories = bmr * 1.4;
+
+      const carbs = (calories * 0.5 / 4).toFixed(1);
+      const protein = (calories * 0.2 / 4).toFixed(1);
+      const fat = (calories * 0.3 / 9).toFixed(1);
+
+      document.getElementById('result').innerHTML =
+        `하루 권장 칼로리: ${Math.round(calories)} kcal<br>
+        탄수화물: ${carbs}g, 단백질: ${protein}g, 지방: ${fat}g`;
+    }
+  </script>
+</body>
+</html>
