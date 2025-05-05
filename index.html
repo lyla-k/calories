@@ -4,28 +4,68 @@
   <title>Calorie & Macronutrient Calculator</title>
 </head>
 <body>
+  <!-- Calculator -->
   <h2>Daily Calorie and Macronutrient Calculator</h2>
   <label>Height (cm):</label><input id="height" type="number"><br>
   <label>Weight (kg):</label><input id="weight" type="number"><br>
   <button onclick="calculate()">Calculate</button>
   <p id="result"></p>
 
+  <!-- Food Lookup -->
+  <h2>Food Nutrition Lookup</h2>
+  <input id="foodInput" placeholder="e.g. banana">
+  <button onclick="lookupFood()">Search</button>
+  <div id="foodResult"></div>
+
+  <!-- JS functions -->
   <script>
     function calculate() {
       const height = parseFloat(document.getElementById('height').value);
       const weight = parseFloat(document.getElementById('weight').value);
-      const age = 25; // default value
+      const age = 25;
       const bmr = 655 + (9.6 * weight) + (1.8 * height) - (4.7 * age);
       const calories = bmr * 1.4;
 
-      const carbs = (calories * 0.5 / 4).toFixed(1);    // 1g = 4kcal
-      const protein = (calories * 0.2 / 4).toFixed(1);  // 1g = 4kcal
-      const fat = (calories * 0.3 / 9).toFixed(1);      // 1g = 9kcal
+      const carbs = (calories * 0.5 / 4).toFixed(1);
+      const protein = (calories * 0.2 / 4).toFixed(1);
+      const fat = (calories * 0.3 / 9).toFixed(1);
 
       document.getElementById('result').innerHTML =
         `Estimated daily calories: ${Math.round(calories)} kcal<br>
          Carbohydrates: ${carbs}g, Protein: ${protein}g, Fat: ${fat}g`;
     }
+
+    async function lookupFood() {
+      const query = document.getElementById('foodInput').value;
+      const apiKey = 'VU8F3s6k8I67WIUFi0xxJWtzq1Ud06BqZochOmUp'; // 👈 Replace this
+
+      const searchRes = await fetch(`https://api.nal.usda.gov/fdc/v1/foods/search?query=${query}&pageSize=1&api_key=${apiKey}`);
+      const searchData = await searchRes.json();
+      const fdcId = searchData.foods?.[0]?.fdcId;
+
+      if (!fdcId) {
+        document.getElementById('foodResult').innerHTML = 'No food found.';
+        return;
+      }
+
+      const foodRes = await fetch(`https://api.nal.usda.gov/fdc/v1/food/${fdcId}?api_key=${apiKey}`);
+      const foodData = await foodRes.json();
+
+      const nutrients = {};
+      foodData.foodNutrients.forEach(n => {
+        nutrients[n.nutrientName] = n.value;
+      });
+
+      const result = `
+        <strong>${foodData.description}</strong><br>
+        Calories: ${nutrients['Energy'] || 0} kcal<br>
+        Carbs: ${nutrients['Carbohydrate, by difference'] || 0} g<br>
+        Sugar: ${nutrients['Sugars, total including NLEA'] || 0} g<br>
+        Fiber: ${nutrients['Fiber, total dietary'] || 0} g<br>
+        Protein: ${nutrients['Protein'] || 0} g<br>
+        Fat: ${nutrients['Total lipid (fat)'] || 0} g
+      `;
+      document.getElementById('foodResult').innerHTML = result;
+    }
   </script>
 </body>
-</html>
